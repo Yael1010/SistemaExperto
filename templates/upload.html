@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Cargar CSV</h2>
+  <form method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+      <input class="form-control" type="file" name="file" accept=".csv" required>
+    </div>
+    <button class="btn btn-primary" type="submit">Subir</button>
+  </form>
+
+  {% if uploaded %}
+    <hr>
+    <h5>Preview: {{ filename }}</h5>
+    <div class="table-responsive table-wrap mt-3">{{ preview|safe }}</div>
+    <p class="mt-2">Columnas: <code>{{ cols|join(', ') }}</code></p>
+  {% endif %}
+{% endblock %}

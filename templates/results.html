@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Resultados</h2>
+  <p>Modelo guardado: <code>{{ result.model_path }}</code></p>
+
+  <h5>Métricas</h5>
+  <pre class="bg-light p-2 text-dark">{{ result.metrics | tojson(indent=2) }}</pre>
+
+  <div class="row">
+    {% if result.confusion_image %}
+      <div class="col-md-6">
+        <h6>Matriz de confusión</h6>
+        <img class="img-fluid rounded" src="{{ '/' + result.confusion_image }}" alt="cm">
+      </div>
+    {% endif %}
+    {% if result.dist_image %}
+      <div class="col-md-6">
+        <h6>Distribución de clases</h6>
+        <img class="img-fluid rounded" src="{{ '/' + result.dist_image }}" alt="dist">
+      </div>
+    {% endif %}
+  </div>
+
+  {% if result.hist_image %}
+    <hr>
+    <h6>Histogramas (numéricas)</h6>
+    <img class="img-fluid rounded" src="{{ '/' + result.hist_image }}" alt="hist">
+  {% endif %}
+
+  {% if result.tree_image %}
+    <hr>
+    <h6>Árbol de decisión</h6>
+    <img class="img-fluid rounded" src="{{ '/' + result.tree_image }}" alt="tree">
+  {% endif %}
+
+  <p class="mt-3"><a class="btn btn-outline-primary" href="{{ url_for('download_model', name=result.model_path.split('/')[-1]) }}">Descargar modelo (.joblib)</a></p>
+{% endblock %}

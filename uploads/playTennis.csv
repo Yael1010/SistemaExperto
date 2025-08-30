@@ -1,0 +1,15 @@
+Dia,Cielo,Temperatura,Humedad,Viento,Jugar_tenis
+1,Sol,Alta,Alta,Debil,No
+2,Sol,Alta,Alta,Fuerte,No
+3,Nubes,Alta,Alta,Debil,Si
+4,Lluvia,Suave,Alta,Debil,Si
+5,Lluvia,Baja,Normal,Debil,Si
+6,Lluvia,Baja,Normal,Fuerte,No
+7,Nubes,Baja,Normal,Fuerte,Si
+8,Sol,Suave,Alta,Debil,No
+9,Sol,Baja,Normal,Debil,Si
+10,Lluvia,Suave,Normal,Debil,Si
+11,Sol,Suave,Normal,Fuerte,Si
+12,Nubes,Suave,Alta,Fuerte,Si
+13,Nubes,Alta,Normal,Debil,Si
+14,Lluvia,Suave,Alta,Fuerte,No

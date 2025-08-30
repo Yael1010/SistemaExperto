@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Entrenar modelo</h2>
+  <form method="post">
+    <div class="mb-3">
+      <label>Dataset (subido)</label>
+      <select class="form-select" name="dataset" required>
+        {% for f, cols in datasets %}
+          <option value="{{ f }}">{{ f }} {% if cols %}- cols: {{ cols|join(', ') }}{% endif %}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label>Algoritmo</label>
+      <select class="form-select" name="algorithm">
+        <option value="id3">ID3 (DecisionTree)</option>
+        <option value="knn">K-NN</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label>Validación</label>
+      <select class="form-select" name="validation">
+        <option value="holdout">Hold-out (train/test)</option>
+        <option value="kfold">K-Fold Cross Validation</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <label>K (KNN)</label>
+        <input class="form-control" type="number" name="knn_k" value="5">
+      </div>
+      <div class="col-md-4 mb-3">
+        <label>n_splits (k-fold)</label>
+        <input class="form-control" type="number" name="k_folds" value="5">
+      </div>
+      <div class="col-md-4 mb-3">
+        <label>Max depth (árbol)</label>
+        <input class="form-control" type="number" name="max_depth">
+      </div>
+    </div>
+
+    <button class="btn btn-lg btn-primary" type="submit">Entrenar</button>
+  </form>
+{% endblock %}

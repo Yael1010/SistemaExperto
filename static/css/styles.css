@@ -1,0 +1,3 @@
+/* añade cosas pequeñas además de Bootstrap */
+.table-wrap { background: white; padding: 10px; border-radius: 8px; overflow:auto; color:#111; }
+.bg-dark .table-wrap { color:#111; }

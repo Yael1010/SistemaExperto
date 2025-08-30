@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Visualizaciones (modelo: {{ model_file }})</h2>
+
+  <div class="row">
+    {% if cm %}
+      <div class="col-md-6">
+        <h6>Matriz de confusión</h6>
+        <img src="{{ '/' + cm }}" class="img-fluid rounded">
+      </div>
+    {% endif %}
+    {% if dist %}
+      <div class="col-md-6">
+        <h6>Distribución de clases</h6>
+        <img src="{{ '/' + dist }}" class="img-fluid rounded">
+      </div>
+    {% endif %}
+  </div>
+
+  {% if hist %}
+    <hr>
+    <h6>Histogramas</h6>
+    <img src="{{ '/' + hist }}" class="img-fluid rounded">
+  {% endif %}
+
+  {% if tree %}
+    <hr>
+    <h6>Árbol de decisión</h6>
+    <img src="{{ '/' + tree }}" class="img-fluid rounded">
+  {% endif %}
+{% endblock %}
