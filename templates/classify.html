@@ -1,15 +1,291 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Clasificar Nuevo Ejemplo</h2>
-<form method="POST">
-    {% for col in columns %}
-        <label>{{ col }}:</label>
-        <input type="text" name="{{ col }}" required><br><br>
-    {% endfor %}
-    <button type="submit">Clasificar</button>
-</form>
+  <div class="row">
+    <div class="col-md-8">
+      <h2 class="mb-4">🔮 Clasificar Nuevos Ejemplos</h2>
+      <p class="text-muted mb-4">Utilice los modelos entrenados para clasificar nuevos ejemplos, ya sea individualmente o por lotes.</p>
 
-{% if prediction is not none %}
-<h3>Predicción: {{ prediction }}</h3>
-{% endif %}
+      <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+        <!-- Model Selection -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">🤖 Selección de Modelo</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label fw-bold">Modelo Entrenado</label>
+              <select class="form-select" name="model" id="modelSelect" onchange="loadModelInfo()" required>
+                <option value="">Seleccione un modelo...</option>
+                {% for model in models %}
+                  <option value="{{ model.filename }}" 
+                          {% if selected_model == model.filename %}selected{% endif %}
+                          data-algorithm="{{ model.metadata.algorithm if model.metadata else 'Unknown' }}"
+                          data-validation="{{ model.metadata.validation_method if model.metadata else 'Unknown' }}"
+                          data-accuracy="{{ model.metadata.metrics.accuracy if model.metadata and model.metadata.metrics else 'N/A' }}">
+                    {{ model.display_name }}
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="invalid-feedback">
+                Debe seleccionar un modelo entrenado.
+              </div>
+            </div>
+            
+            <div id="modelInfo" class="mt-3" styles="{% if not selected_metadata %}display:none;{% endif %}">
+              {% if selected_metadata %}
+                <div class="alert alert-info">
+                  <strong>Información del modelo:</strong><br>
+                  <strong>Algoritmo:</strong> {{ selected_metadata.algorithm.upper() }}<br>
+                  <strong>Validación:</strong> {{ selected_metadata.validation_method }}<br>
+                  <strong>Dataset:</strong> {{ selected_metadata.dataset_file }}<br>
+                  <strong>Variables de entrada:</strong> {{ selected_metadata.feature_names|join(', ') }}<br>
+                  <strong>Variable objetivo:</strong> {{ selected_metadata.target_col }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode Selection -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">📝 Modo de Clasificación</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label fw-bold">Tipo de clasificación</label>
+              <select class="form-select" name="mode" id="modeSelect" onchange="toggleMode()">
+                <option value="single">Clasificación Individual (Formulario)</option>
+                <option value="batch">Clasificación por Lotes (CSV)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Single Prediction Form -->
+        <div id="singleDiv" class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">📝 Clasificación Individual</h5>
+          </div>
+          <div class="card-body">
+            {% if selected_metadata and selected_metadata.feature_names %}
+              <p class="text-muted mb-3">Complete todos los campos para obtener una predicción:</p>
+              <div class="row">
+                {% for col in selected_metadata.feature_names %}
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">{{ col }}</label>
+                    <input class="form-control" name="col__{{ col }}" placeholder="Ingrese valor para {{ col }}" 
+                           value="{{ request.form.get('col__' + col, '') if request.method == 'POST' else '' }}" required>
+                    <div class="invalid-feedback">
+                      Este campo es obligatorio.
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+              <div class="d-grid">
+                <button class="btn btn-success" type="submit">
+                  <i class="fas fa-magic"></i> Clasificar Ejemplo
+                </button>
+              </div>
+            {% else %}
+              <div class="alert alert-warning">
+                <strong>⚠️ Atención:</strong> No hay metadatos disponibles para este modelo.
+                <br>Seleccione un modelo válido o vuelva a entrenar para generar los metadatos necesarios.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Batch Prediction Form -->
+        <div id="batchDiv" class="card mb-4" style="display:none">
+          <div class="card-header">
+            <h5 class="mb-0">📊 Clasificación por Lotes</h5>
+          </div>
+          <div class="card-body">
+            <p class="text-muted mb-3">
+              Suba un archivo CSV con las mismas columnas (excepto la variable objetivo) que se utilizaron durante el entrenamiento.
+            </p>
+            <div class="mb-3">
+              <label class="form-label fw-bold">Archivo CSV</label>
+              <input class="form-control" type="file" name="file" accept=".csv">
+              <div class="form-text">Solo se aceptan archivos CSV (.csv)</div>
+            </div>
+            <div class="d-grid">
+              <button class="btn btn-success" type="submit">
+                <i class="fas fa-upload"></i> Procesar Lote
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <!-- Results Section -->
+      {% if single_result or batch_file %}
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">🎯 Resultados de Clasificación</h5>
+          </div>
+          <div class="card-body">
+            {% if single_result %}
+              <h6 class="text-success">Resultado de Clasificación Individual:</h6>
+              <div class="table-responsive table-wrap">
+                {{ single_result|safe }}
+              </div>
+            {% endif %}
+
+            {% if batch_file %}
+              <h6 class="text-success">Clasificación por Lotes Completada:</h6>
+              <div class="mb-3">
+                <a class="btn btn-outline-primary" href="{{ url_for('download_preds', name=batch_file) }}">
+                  <i class="fas fa-download"></i> Descargar Resultados ({{ batch_file }})
+                </a>
+              </div>
+              <div class="table-responsive table-wrap">
+                <strong>Vista previa (primeras 10 filas):</strong>
+                {{ batch_preview|safe }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">📊 Modelos Disponibles</h5>
+        </div>
+        <div class="card-body">
+          {% if models %}
+            <div class="list-group list-group-flush">
+              {% for model in models %}
+                <div class="list-group-item px-0">
+                  <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">{{ model.filename[:20] }}{% if model.filename|length > 20 %}...{% endif %}</h6>
+                    <small class="text-muted">{{ model.algorithm }}</small>
+                  </div>
+                  <p class="mb-1">
+                    <strong>Validación:</strong> {{ model.validation }}<br>
+                    <strong>Precisión:</strong> 
+                    {% if model.accuracy != 'N/A' %}
+                      <span class="badge bg-success">{{ "%.3f"|format(model.accuracy|float) if model.accuracy != 'N/A' else 'N/A' }}</span>
+                    {% else %}
+                      <span class="badge bg-secondary">N/A</span>
+                    {% endif %}
+                  </p>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <a href="{{ url_for('visualize', model_file=model.filename) }}" class="btn btn-outline-info btn-sm">
+                      <i class="fas fa-chart-bar"></i> Ver
+                    </a>
+                    <a href="{{ url_for('download_model', name=model.filename) }}" class="btn btn-outline-secondary btn-sm">
+                      <i class="fas fa-download"></i> Descargar
+                    </a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center text-muted">
+              <p>No hay modelos entrenados disponibles.</p>
+              <a href="{{ url_for('train') }}" class="btn btn-outline-primary btn-sm">Entrenar Modelo</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card mt-4">
+        <div class="card-header">
+          <h5 class="mb-0">💡 Consejos</h5>
+        </div>
+        <div class="card-body">
+          <ul class="list-unstyled">
+            <li class="mb-2">
+              <i class="fas fa-lightbulb text-warning"></i>
+              <strong>Clasificación Individual:</strong> Ideal para probar casos específicos
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-database text-info"></i>
+              <strong>Por Lotes:</strong> Procese múltiples ejemplos de una vez
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-check-circle text-success"></i>
+              Asegúrese de que el CSV tenga las mismas columnas del entrenamiento
+            </li>
+            <li>
+              <i class="fas fa-exclamation-triangle text-danger"></i>
+              No incluya la variable objetivo en el archivo de prueba
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+function toggleMode() {
+  const mode = document.getElementById('modeSelect').value;
+  const singleDiv = document.getElementById('singleDiv');
+  const batchDiv = document.getElementById('batchDiv');
+  
+  if (mode === 'single') {
+    singleDiv.style.display = 'block';
+    batchDiv.style.display = 'none';
+  } else {
+    singleDiv.style.display = 'none';
+    batchDiv.style.display = 'block';
+  }
+}
+
+function loadModelInfo() {
+  const select = document.getElementById('modelSelect');
+  const infoDiv = document.getElementById('modelInfo');
+  
+  if (select.value) {
+    const option = select.selectedOptions[0];
+    const algorithm = option.getAttribute('data-algorithm');
+    const validation = option.getAttribute('data-validation');
+    const accuracy = option.getAttribute('data-accuracy');
+    
+    if (algorithm !== 'Unknown') {
+      infoDiv.innerHTML = `
+        <div class="alert alert-info">
+          <strong>Información del modelo:</strong><br>
+          <strong>Algoritmo:</strong> ${algorithm.toUpperCase()}<br>
+          <strong>Validación:</strong> ${validation}<br>
+          <strong>Precisión:</strong> ${accuracy !== 'N/A' ? parseFloat(accuracy).toFixed(3) : 'N/A'}
+        </div>
+      `;
+      infoDiv.style.display = 'block';
+    } else {
+      infoDiv.style.display = 'none';
+    }
+  } else {
+    infoDiv.style.display = 'none';
+  }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  toggleMode();
+  loadModelInfo();
+});
+
+// Bootstrap validation
+(function() {
+  'use strict';
+  window.addEventListener('load', function() {
+    var forms = document.getElementsByClassName('needs-validation');
+    var validation = Array.prototype.filter.call(forms, function(form) {
+      form.addEventListener('submit', function(event) {
+        if (form.checkValidity() === false) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  }, false);
+})();
+</script>
+
 {% endblock %}

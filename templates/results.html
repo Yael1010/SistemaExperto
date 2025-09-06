@@ -1,37 +1,263 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2>Resultados</h2>
-  <p>Modelo guardado: <code>{{ result.model_path }}</code></p>
-
-  <h5>Métricas</h5>
-  <pre class="bg-light p-2 text-dark">{{ result.metrics | tojson(indent=2) }}</pre>
-
   <div class="row">
-    {% if result.confusion_image %}
-      <div class="col-md-6">
-        <h6>Matriz de confusión</h6>
-        <img class="img-fluid rounded" src="{{ '/' + result.confusion_image }}" alt="cm">
+    <div class="col-md-12">
+      <div class="alert alert-success text-center mb-4">
+        <h4><i class="fas fa-check-circle"></i> ¡Entrenamiento Completado Exitosamente!</h4>
+        <p class="mb-0">Su modelo ha sido entrenado y está listo para clasificar nuevos ejemplos.</p>
       </div>
-    {% endif %}
-    {% if result.dist_image %}
-      <div class="col-md-6">
-        <h6>Distribución de clases</h6>
-        <img class="img-fluid rounded" src="{{ '/' + result.dist_image }}" alt="dist">
-      </div>
-    {% endif %}
+    </div>
   </div>
 
-  {% if result.hist_image %}
-    <hr>
-    <h6>Histogramas (numéricas)</h6>
-    <img class="img-fluid rounded" src="{{ '/' + result.hist_image }}" alt="hist">
-  {% endif %}
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="fas fa-chart-line"></i> Métricas de Rendimiento</h5>
+        </div>
+        <div class="card-body">
+          {% set metrics = result.metrics %}
+          
+          <!-- Accuracy Display -->
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <div class="text-center p-3 bg-light rounded">
+                <h3 class="text-success mb-0">
+                  {% if metrics.accuracy %}
+                    {{ "%.3f"|format(metrics.accuracy) }}
+                  {% elif metrics.cv_mean %}
+                    {{ "%.3f"|format(metrics.cv_mean) }}
+                  {% else %}
+                    N/A
+                  {% endif %}
+                </h3>
+                <small class="text-muted">Precisión Global</small>
+              </div>
+            </div>
+            
+            {% if metrics.cv_scores %}
+              <div class="col-md-6">
+                <div class="text-center p-3 bg-light rounded">
+                  <h3 class="text-info mb-0">{{ metrics.cv_scores|length }}-Fold</h3>
+                  <small class="text-muted">Validación Cruzada</small>
+                  <div class="mt-2">
+                    <small>
+                      Min: {{ "%.3f"|format(metrics.cv_scores|min) }} | 
+                      Max: {{ "%.3f"|format(metrics.cv_scores|max) }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+          </div>
 
-  {% if result.tree_image %}
-    <hr>
-    <h6>Árbol de decisión</h6>
-    <img class="img-fluid rounded" src="{{ '/' + result.tree_image }}" alt="tree">
-  {% endif %}
+          <!-- Detailed Metrics -->
+          {% if metrics.report %}
+            <h6><i class="fas fa-table"></i> Reporte Detallado por Clase:</h6>
+            <div class="table-responsive">
+              <table class="table table-sm table-striped">
+                <thead>
+                  <tr>
+                    <th>Clase</th>
+                    <th>Precisión</th>
+                    <th>Recall</th>
+                    <th>F1-Score</th>
+                    <th>Soporte</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for class_name, class_metrics in metrics.report.items() %}
+                    {% if class_name not in ['accuracy', 'macro avg', 'weighted avg'] and class_metrics is mapping %}
+                      <tr>
+                        <td><strong>{{ class_name }}</strong></td>
+                        <td>{{ "%.3f"|format(class_metrics.precision) }}</td>
+                        <td>{{ "%.3f"|format(class_metrics.recall) }}</td>
+                        <td>{{ "%.3f"|format(class_metrics['f1-score']) }}</td>
+                        <td>{{ class_metrics.support }}</td>
+                      </tr>
+                    {% endif %}
+                  {% endfor %}
+                  
+                  {% if 'macro avg' in metrics.report %}
+                    <tr class="table-info">
+                      <td><strong>Promedio Macro</strong></td>
+                      <td>{{ "%.3f"|format(metrics.report['macro avg'].precision) }}</td>
+                      <td>{{ "%.3f"|format(metrics.report['macro avg'].recall) }}</td>
+                      <td>{{ "%.3f"|format(metrics.report['macro avg']['f1-score']) }}</td>
+                      <td>{{ metrics.report['macro avg'].support }}</td>
+                    </tr>
+                  {% endif %}
+                  
+                  {% if 'weighted avg' in metrics.report %}
+                    <tr class="table-success">
+                      <td><strong>Promedio Ponderado</strong></td>
+                      <td>{{ "%.3f"|format(metrics.report['weighted avg'].precision) }}</td>
+                      <td>{{ "%.3f"|format(metrics.report['weighted avg'].recall) }}</td>
+                      <td>{{ "%.3f"|format(metrics.report['weighted avg']['f1-score']) }}</td>
+                      <td>{{ metrics.report['weighted avg'].support }}</td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
 
-  <p class="mt-3"><a class="btn btn-outline-primary" href="{{ url_for('download_model', name=result.model_path.split('/')[-1]) }}">Descargar modelo (.joblib)</a></p>
+          {% if metrics.cv_scores %}
+            <h6><i class="fas fa-chart-bar"></i> Puntuaciones de Validación Cruzada:</h6>
+            <div class="row">
+              {% for score in metrics.cv_scores %}
+                <div class="col-md-2 mb-2">
+                  <div class="text-center p-2 bg-light rounded">
+                    <strong>{{ "%.3f"|format(score) }}</strong>
+                    <br><small>Fold {{ loop.index }}</small>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información del Modelo</h5>
+        </div>
+        <div class="card-body">
+          <dl class="row">
+            <dt class="col-sm-5">Archivo:</dt>
+            <dd class="col-sm-7"><code>{{ model_name }}</code></dd>
+            
+            <dt class="col-sm-5">Algoritmo:</dt>
+            <dd class="col-sm-7">
+              {% if 'id3' in result.model_path.lower() or 'decision' in result.model_path.lower() %}
+                <span class="badge bg-success">ID3 / Decision Tree</span>
+              {% elif 'knn' in result.model_path.lower() %}
+                <span class="badge bg-primary">K-Nearest Neighbors</span>
+              {% else %}
+                <span class="badge bg-secondary">Desconocido</span>
+              {% endif %}
+            </dd>
+            
+            <dt class="col-sm-5">Variables:</dt>
+            <dd class="col-sm-7">{{ result.feature_names|length }} features</dd>
+            
+            <dt class="col-sm-5">Variable objetivo:</dt>
+            <dd class="col-sm-7"><code>{{ result.target_col }}</code></dd>
+            
+            <dt class="col-sm-5">Estado:</dt>
+            <dd class="col-sm-7">
+              <span class="badge bg-success">
+                <i class="fas fa-check"></i> Entrenado
+              </span>
+            </dd>
+          </dl>
+
+          <h6 class="mt-4"><i class="fas fa-list"></i> Variables de entrada:</h6>
+          <div class="small">
+            {% for feature in result.feature_names %}
+              <span class="badge bg-light text-dark me-1 mb-1">{{ feature }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0"><i class="fas fa-download"></i> Acciones</h5>
+        </div>
+        <div class="card-body text-center">
+          <div class="d-grid gap-2">
+            <a href="{{ url_for('predict') }}" class="btn btn-primary">
+              <i class="fas fa-magic"></i> Usar para Clasificar
+            </a>
+            <a href="{{ url_for('download_model', name=model_name) }}" class="btn btn-outline-secondary">
+              <i class="fas fa-download"></i> Descargar Modelo
+            </a>
+            <a href="{{ url_for('visualize', model_file=model_name) }}" class="btn btn-outline-info">
+              <i class="fas fa-chart-bar"></i> Ver Visualizaciones
+            </a>
+            <a href="{{ url_for('home') }}" class="btn btn-outline-primary">
+              <i class="fas fa-home"></i> Volver al Inicio
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visualizations -->
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Visualizaciones Generadas</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            {% if result.confusion_image %}
+              <div class="col-md-6 mb-4">
+                <h6><i class="fas fa-table"></i> Matriz de Confusión</h6>
+                <div class="text-center">
+                  <img src="{{ '/' + result.confusion_image }}" class="img-fluid rounded shadow" alt="Matriz de Confusión" style="max-height: 400px;">
+                </div>
+                <p class="mt-2 small text-muted">Muestra la precisión de clasificación para cada clase.</p>
+              </div>
+            {% endif %}
+
+            {% if result.dist_image %}
+              <div class="col-md-6 mb-4">
+                <h6><i class="fas fa-chart-bar"></i> Distribución de Clases</h6>
+                <div class="text-center">
+                  <img src="{{ '/' + result.dist_image }}" class="img-fluid rounded shadow" alt="Distribución" style="max-height: 400px;">
+                </div>
+                <p class="mt-2 small text-muted">Distribución de las clases objetivo en el dataset.</p>
+              </div>
+            {% endif %}
+          </div>
+
+          {% if result.hist_image %}
+            <div class="row">
+              <div class="col-md-12 mb-4">
+                <h6><i class="fas fa-chart-area"></i> Histogramas de Variables Numéricas</h6>
+                <div class="text-center">
+                  <img src="{{ '/' + result.hist_image }}" class="img-fluid rounded shadow" alt="Histogramas" style="max-width: 100%;">
+                </div>
+                <p class="mt-2 small text-muted">Distribución de las variables numéricas del dataset.</p>
+              </div>
+            </div>
+          {% endif %}
+
+          {% if result.tree_image %}
+            <div class="row">
+              <div class="col-md-12 mb-4">
+                <h6><i class="fas fa-sitemap"></i> Árbol de Decisión</h6>
+                <div class="text-center">
+                  <img src="{{ '/' + result.tree_image }}" class="img-fluid rounded shadow" alt="Árbol de Decisión" style="max-width: 100%;">
+                </div>
+                <p class="mt-2 small text-muted">Estructura del árbol de decisión generado (solo para algoritmo ID3).</p>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Next Steps -->
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <div class="alert alert-info">
+        <h5><i class="fas fa-lightbulb"></i> Próximos pasos recomendados:</h5>
+        <ol class="mb-0">
+          <li><strong>Evaluar rendimiento:</strong> Revise las métricas y visualizaciones arriba</li>
+          <li><strong>Probar clasificación:</strong> Use el botón "Usar para Clasificar" para probar el modelo</li>
+          <li><strong>Comparar modelos:</strong> Entrene con diferentes algoritmos o parámetros para comparar</li>
+          <li><strong>Guardar resultados:</strong> Descargue el modelo para uso futuro</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
 {% endblock %}

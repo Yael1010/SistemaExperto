@@ -1,37 +1,196 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Mini-Weka Pro</h1>
-  <p class="lead">Sube datasets CSV, entrena modelos (ID3 / K-NN), valida y visualiza resultados.</p>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="text-center mb-5">
+        <h1 class="display-4 text-primary mb-3">🧠 Mini-Weka Pro</h1>
+        <p class="lead">Sistema experto para machine learning: entrene modelos ID3 y K-NN, valide resultados y clasifique nuevos ejemplos con una interfaz intuitiva.</p>
+        
+        <div class="row justify-content-center mt-4">
+          <div class="col-md-3 mb-3">
+            <a href="{{ url_for('upload') }}" class="btn btn-outline-primary btn-lg d-block">
+              <i class="fas fa-upload fa-2x mb-2"></i><br>
+              Cargar Dataset
+            </a>
+          </div>
+          <div class="col-md-3 mb-3">
+            <a href="{{ url_for('train') }}" class="btn btn-outline-success btn-lg d-block">
+              <i class="fas fa-brain fa-2x mb-2"></i><br>
+              Entrenar Modelo
+            </a>
+          </div>
+          <div class="col-md-3 mb-3">
+            <a href="{{ url_for('predict') }}" class="btn btn-outline-warning btn-lg d-block">
+              <i class="fas fa-magic fa-2x mb-2"></i><br>
+              Clasificar
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="row">
     <div class="col-md-6">
-      <h5>Uploads</h5>
-      <ul class="list-group">
-        {% for f in uploads %}
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            {{ f }}
-            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('download_preds', name=f) }}">Descargar</a>
-          </li>
-        {% else %}
-          <li class="list-group-item">No hay archivos subidos.</li>
-        {% endfor %}
-      </ul>
-    </div>
-    <div class="col-md-6">
-      <h5>Modelos guardados</h5>
-      <ul class="list-group">
-        {% for m in models %}
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            {{ m }}
-            <div>
-              <a class="btn btn-sm btn-outline-primary" href="{{ url_for('download_model', name=m) }}">Descargar</a>
-              <a class="btn btn-sm btn-outline-success" href="{{ url_for('visualize', model_file=m) }}">Visualizar</a>
+      <div class="card h-100">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="fas fa-database"></i> Datasets Disponibles</h5>
+        </div>
+        <div class="card-body">
+          {% if uploads %}
+            <div class="list-group list-group-flush">
+              {% for file in uploads %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="mb-1">{{ file }}</h6>
+                    <small class="text-muted">Archivo CSV listo para entrenar</small>
+                  </div>
+                  <div class="btn-group btn-group-sm">
+                    <a class="btn btn-outline-secondary" href="{{ url_for('download_preds', name=file) }}" title="Descargar">
+                      <i class="fas fa-download"></i>
+                    </a>
+                    <a class="btn btn-outline-success" href="{{ url_for('train') }}" title="Usar para entrenar">
+                      <i class="fas fa-play"></i>
+                    </a>
+                  </div>
+                </div>
+              {% endfor %}
             </div>
-          </li>
-        {% else %}
-          <li class="list-group-item">No hay modelos guardados.</li>
-        {% endfor %}
-      </ul>
+          {% else %}
+            <div class="text-center py-4">
+              <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+              <p class="text-muted">No hay datasets cargados</p>
+              <a href="{{ url_for('upload') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Cargar primer dataset
+              </a>
+            </div>
+          {% endif %}
+        </div>
+        {% if uploads %}
+          <div class="card-footer text-center">
+            <a href="{{ url_for('upload') }}" class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-plus"></i> Cargar nuevo dataset
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0"><i class="fas fa-robot"></i> Modelos Entrenados</h5>
+        </div>
+        <div class="card-body">
+          {% if models %}
+            <div class="list-group list-group-flush">
+              {% for model in models %}
+                <div class="list-group-item">
+                  <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">
+                      {{ model.filename[:25] }}{% if model.filename|length > 25 %}...{% endif %}
+                    </h6>
+                    <small class="text-muted">{{ model.algorithm }}</small>
+                  </div>
+                  <p class="mb-1">
+                    <span class="badge bg-info">{{ model.validation }}</span>
+                    {% if model.accuracy != 'N/A' %}
+                      <span class="badge bg-success">Acc: {{ "%.3f"|format(model.accuracy|float) }}</span>
+                    {% else %}
+                      <span class="badge bg-secondary">Acc: N/A</span>
+                    {% endif %}
+                  </p>
+                  <div class="btn-group btn-group-sm mt-2" role="group">
+                    <a href="{{ url_for('predict') }}" class="btn btn-outline-primary btn-sm" title="Usar para clasificar">
+                      <i class="fas fa-magic"></i> Usar
+                    </a>
+                    <a href="{{ url_for('visualize', model_file=model.filename) }}" class="btn btn-outline-info btn-sm" title="Ver visualizaciones">
+                      <i class="fas fa-chart-bar"></i> Ver
+                    </a>
+                    <a href="{{ url_for('download_model', name=model.filename) }}" class="btn btn-outline-secondary btn-sm" title="Descargar">
+                      <i class="fas fa-download"></i>
+                    </a>
+                    <form method="post" action="{{ url_for('delete_model', model_name=model.filename) }}" class="d-inline" 
+                          onsubmit="return confirm('¿Está seguro de que desea eliminar este modelo?')">
+                      <button type="submit" class="btn btn-outline-danger btn-sm" title="Eliminar modelo">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-4">
+              <i class="fas fa-robot fa-3x text-muted mb-3"></i>
+              <p class="text-muted">No hay modelos entrenados</p>
+              <a href="{{ url_for('train') }}" class="btn btn-success">
+                <i class="fas fa-brain"></i> Entrenar primer modelo
+              </a>
+            </div>
+          {% endif %}
+        </div>
+        {% if models %}
+          <div class="card-footer text-center">
+            <a href="{{ url_for('train') }}" class="btn btn-sm btn-outline-success">
+              <i class="fas fa-plus"></i> Entrenar nuevo modelo
+            </a>
+          </div>
+        {% endif %}
+      </div>
     </div>
   </div>
+
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información del Sistema</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4">
+              <h6><i class="fas fa-tree text-success"></i> Algoritmo ID3</h6>
+              <p class="small">Construye árboles de decisión utilizando ganancia de información. Ideal para variables categóricas y reglas interpretables.</p>
+            </div>
+            <div class="col-md-4">
+              <h6><i class="fas fa-users text-primary"></i> Algoritmo K-NN</h6>
+              <p class="small">Clasifica basándose en los K vecinos más cercanos. Simple y efectivo para patrones complejos.</p>
+            </div>
+            <div class="col-md-4">
+              <h6><i class="fas fa-check-circle text-warning"></i> Validación</h6>
+              <p class="small">Soporte para Hold-out y K-Fold Cross Validation para evaluar robustamente los modelos.</p>
+            </div>
+          </div>
+          
+          <div class="row mt-3">
+            <div class="col-md-12">
+              <div class="alert alert-light border">
+                <h6><i class="fas fa-route"></i> Flujo de trabajo recomendado:</h6>
+                <ol class="mb-0">
+                  <li><strong>Cargar Dataset:</strong> Suba su archivo CSV con los datos de entrenamiento</li>
+                  <li><strong>Entrenar Modelo:</strong> Seleccione algoritmo (ID3/K-NN) y método de validación</li>
+                  <li><strong>Evaluar Resultados:</strong> Revise métricas y visualizaciones</li>
+                  <li><strong>Clasificar:</strong> Use el modelo para predecir nuevos ejemplos</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if models|length > 0 and uploads|length > 0 %}
+    <div class="row mt-4">
+      <div class="col-md-12">
+        <div class="alert alert-success text-center">
+          <h5><i class="fas fa-check-circle"></i> Sistema listo para usar</h5>
+          <p class="mb-0">Tiene {{ uploads|length }} dataset(s) y {{ models|length }} modelo(s) disponible(s). 
+          <a href="{{ url_for('predict') }}" class="alert-link">¡Comience a clasificar!</a></p>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
 {% endblock %}

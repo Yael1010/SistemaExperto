@@ -3,44 +3,283 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Mini-Weka Pro</title>
-  <!-- Bootstrap CDN para diseño rápido -->
+  <title>Mini-Weka Pro - Sistema Experto de ML</title>
+  
+  <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  
+  <style>
+    .table-wrap { 
+      background: white; 
+      padding: 15px; 
+      border-radius: 10px; 
+      overflow: auto; 
+      color: #111; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .bg-dark .table-wrap { 
+      color: #111; 
+    }
+    .navbar-brand {
+      font-weight: bold;
+      font-size: 1.5rem;
+    }
+    .card {
+      border: none;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+    }
+    .btn-group-sm .btn {
+      border-radius: 0.25rem;
+      margin-right: 2px;
+    }
+    .alert {
+      border-radius: 10px;
+      border: none;
+    }
+    .list-group-item {
+      border: none;
+      border-bottom: 1px solid rgba(0,0,0,0.125);
+    }
+    .list-group-item:last-child {
+      border-bottom: none;
+    }
+    .bg-gradient {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+  </style>
 </head>
-<body class="bg-dark text-light">
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="{{ url_for('home') }}">Mini-Weka Pro</a>
-    <div class="collapse navbar-collapse">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('upload') }}">Cargar CSV</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('train') }}">Entrenar</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('predict') }}">Clasificar</a></li>
-      </ul>
+
+<body class="bg-light">
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-gradient shadow">
+    <div class="container">
+      <a class="navbar-brand" href="{{ url_for('home') }}">
+        <i class="fas fa-brain"></i> Mini-Weka Pro
+      </a>
+      
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('home') }}">
+              <i class="fas fa-home"></i> Inicio
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('upload') }}">
+              <i class="fas fa-upload"></i> Cargar CSV
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('train') }}">
+              <i class="fas fa-brain"></i> Entrenar
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('predict') }}">
+              <i class="fas fa-magic"></i> Clasificar
+            </a>
+          </li>
+        </ul>
+        
+        <ul class="navbar-nav">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="helpDropdown" role="button" data-bs-toggle="dropdown">
+              <i class="fas fa-question-circle"></i> Ayuda
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#helpModal">
+                <i class="fas fa-info-circle"></i> Cómo usar
+              </a></li>
+              <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#aboutModal">
+                <i class="fas fa-users"></i> Acerca de
+              </a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container py-4">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="row">
+          <div class="col-md-12">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ 'success' if category == 'success' else ('warning' if category == 'warning' else 'danger') }} alert-dismissible fade show" role="alert">
+                <i class="fas fa-{{ 'check-circle' if category == 'success' else ('exclamation-triangle' if category == 'warning' else 'exclamation-circle') }}"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-light py-4 mt-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <h5><i class="fas fa-brain"></i> Mini-Weka Pro</h5>
+          <p class="text-muted">Sistema experto de machine learning simple, directo y efectivo.</p>
+        </div>
+        <div class="col-md-6 text-end">
+          <p class="text-muted mb-0">
+            <i class="fas fa-code"></i> Desarrollado con Flask & scikit-learn
+          </p>
+          <p class="text-muted">
+            <i class="fas fa-heart text-danger"></i> Hecho para aprender ML
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Help Modal -->
+  <div class="modal fade" id="helpModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="fas fa-question-circle"></i> Cómo usar Mini-Weka Pro</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="accordion" id="helpAccordion">
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#step1">
+                  1. Cargar Dataset
+                </button>
+              </h2>
+              <div id="step1" class="accordion-collapse collapse show" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                  <ul>
+                    <li>Suba un archivo CSV con sus datos de entrenamiento</li>
+                    <li>La última columna se considera automáticamente como variable objetivo</li>
+                    <li>Asegúrese de que no haya valores faltantes críticos</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step2">
+                  2. Entrenar Modelo
+                </button>
+              </h2>
+              <div id="step2" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                  <ul>
+                    <li><strong>ID3:</strong> Mejor para datos categóricos y reglas interpretables</li>
+                    <li><strong>K-NN:</strong> Mejor para patrones complejos y datos numéricos</li>
+                    <li><strong>Hold-out:</strong> Más rápido, divide 70/30</li>
+                    <li><strong>K-Fold:</strong> Más robusto, usa validación cruzada</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step3">
+                  3. Clasificar
+                </button>
+              </h2>
+              <div id="step3" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                  <ul>
+                    <li><strong>Individual:</strong> Complete el formulario con un ejemplo</li>
+                    <li><strong>Por lotes:</strong> Suba CSV con múltiples ejemplos</li>
+                    <li>Use las mismas columnas del entrenamiento (excepto la variable objetivo)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</nav>
 
-<div class="container py-4">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for cat, msg in messages %}
-        <div class="alert alert-{{ 'success' if cat == 'success' else ('warning' if cat=='warning' else 'danger') }} alert-sm">
-          {{ msg }}
+  <!-- About Modal -->
+  <div class="modal fade" id="aboutModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title"><i class="fas fa-users"></i> Acerca de</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+        <div class="modal-body text-center">
+          <i class="fas fa-brain fa-3x text-primary mb-3"></i>
+          <h4>Mini-Weka Pro</h4>
+          <p class="text-muted">
+            Sistema experto de machine learning inspirado en Weka, diseñado para ser simple y educativo.
+          </p>
+          <hr>
+          <p><strong>Características:</strong></p>
+          <ul class="list-unstyled">
+            <li><i class="fas fa-check text-success"></i> Visualizaciones automáticas</li>
+            <li><i class="fas fa-check text-success"></i> Gestión de modelos</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  {% block content %}{% endblock %}
-</div>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Custom JavaScript -->
+  <script>
+    // Auto-hide alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        var alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+          if (alert.classList.contains('alert-success')) {
+            var bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+          }
+        });
+      }, 5000);
+    });
 
-<footer class="text-center text-muted py-3">
-  Mini-Weka Pro • Simple, directo y efectivo.
-</footer>
+    // Confirm delete actions
+    function confirmDelete(message) {
+      return confirm(message || '¿Está seguro de que desea eliminar este elemento?');
+    }
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    // Loading states for forms
+    document.querySelectorAll('form').forEach(function(form) {
+      form.addEventListener('submit', function(e) {
+        var submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn && !form.classList.contains('no-loading')) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+        }
+      });
+    });
+  </script>
 </body>
-</html>
+</html>-success"></i> Algoritmos ID3 y K-NN</li>
+            <li><i class="fas fa-check text-success"></i> Validación Hold-out y K-Fold</li>
+            <li><i class="fas fa-check text-success"></i> Interfaz intuitiva</li>
+            <li><i class="fas fa-check text

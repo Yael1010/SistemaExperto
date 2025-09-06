@@ -1,0 +1,47 @@
+{
+  "algorithm": "id3",
+  "validation_method": "holdout",
+  "k_folds": null,
+  "knn_k": null,
+  "max_depth": null,
+  "feature_names": [
+    "Dia",
+    "Cielo",
+    "Temperatura",
+    "Humedad",
+    "Viento"
+  ],
+  "target_col": "Jugar_tenis",
+  "dataset_file": "playTennis.csv",
+  "metrics": {
+    "accuracy": 0.4,
+    "validation_method": "holdout",
+    "report": {
+      "No": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 2.0
+      },
+      "Si": {
+        "precision": 0.5,
+        "recall": 0.6666666666666666,
+        "f1-score": 0.5714285714285714,
+        "support": 3.0
+      },
+      "accuracy": 0.4,
+      "macro avg": {
+        "precision": 0.25,
+        "recall": 0.3333333333333333,
+        "f1-score": 0.2857142857142857,
+        "support": 5.0
+      },
+      "weighted avg": {
+        "precision": 0.3,
+        "recall": 0.4,
+        "f1-score": 0.34285714285714286,
+        "support": 5.0
+      }
+    }
+  }
+}

@@ -1,31 +1,44 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2>Visualizaciones (modelo: {{ model_file }})</h2>
+<h3>Visualizaciones del modelo: <code>{{ model }}</code></h3>
 
-  <div class="row">
-    {% if cm %}
-      <div class="col-md-6">
-        <h6>Matriz de confusión</h6>
-        <img src="{{ '/' + cm }}" class="img-fluid rounded">
-      </div>
-    {% endif %}
-    {% if dist %}
-      <div class="col-md-6">
-        <h6>Distribución de clases</h6>
-        <img src="{{ '/' + dist }}" class="img-fluid rounded">
-      </div>
-    {% endif %}
+<div class="row g-4">
+  {% if cm %}
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Matriz de confusión</div>
+      <img class="img-fluid" src="/{{ cm }}">
+    </div>
   </div>
-
-  {% if hist %}
-    <hr>
-    <h6>Histogramas</h6>
-    <img src="{{ '/' + hist }}" class="img-fluid rounded">
   {% endif %}
-
-  {% if tree %}
-    <hr>
-    <h6>Árbol de decisión</h6>
-    <img src="{{ '/' + tree }}" class="img-fluid rounded">
+  {% if dist %}
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Distribución de clases</div>
+      <img class="img-fluid" src="/{{ dist }}">
+    </div>
+  </div>
   {% endif %}
+</div>
+
+{% if hist %}
+<div class="card mt-4">
+  <div class="card-header">Histogramas</div>
+  <img class="img-fluid" src="/{{ hist }}">
+</div>
+{% endif %}
+
+{% if tree %}
+<div class="card mt-4">
+  <div class="card-header">Árbol de decisión (ID3)</div>
+  <img class="img-fluid" src="/{{ tree }}">
+</div>
+{% endif %}
+
+{% if knn2d %}
+<div class="card mt-4">
+  <div class="card-header">K-NN vecinos más cercanos (2D)</div>
+  <img class="img-fluid" src="/{{ knn2d }}">
+</div>
+{% endif %}
 {% endblock %}

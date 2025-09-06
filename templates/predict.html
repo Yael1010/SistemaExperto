@@ -1,65 +1,69 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2>Clasificar nuevos ejemplos</h2>
+<h3>3) Clasificar nuevos ejemplos</h3>
+<form method="post" enctype="multipart/form-data" class="card p-3">
+  <div class="mb-3">
+    <label class="form-label">Modelo</label>
+    <select class="form-select" name="model" required>
+      {% for m in models %}
+        <option value="{{ m }}">{{ m }}</option>
+      {% endfor %}
+    </select>
+  </div>
 
-  <form method="post" enctype="multipart/form-data">
-    <div class="mb-3">
-      <label>Modelo</label>
-      <select class="form-select" name="model" required>
-        {% for m in models %}
-          <option value="{{ m }}">{{ m }}</option>
-        {% endfor %}
-      </select>
+  <div class="mb-3">
+    <label class="form-label">Modo</label>
+    <select class="form-select" name="mode" id="mode" onchange="toggleMode()">
+      <option value="single">Single (formulario)</option>
+      <option value="batch">Batch (CSV)</option>
+    </select>
+  </div>
+
+  <div id="singleDiv">
+    {% if features %}
+      <div class="row g-2">
+      {% for col in features %}
+        <div class="col-md-4">
+          <label class="form-label">{{ col }}</label>
+          <input class="form-control" name="col__{{ col }}" placeholder="{{ col }}">
+        </div>
+      {% endfor %}
+      </div>
+      <button class="btn btn-success mt-3">Predecir (single)</button>
+    {% else %}
+      <p class="text-muted">Entrena un modelo para generar este formulario automáticamente.</p>
+    {% endif %}
+  </div>
+
+  <div id="batchDiv" style="display:none;">
+    <p>Sube un CSV con las mismas columnas de entrenamiento (sin la columna target).</p>
+    <input class="form-control" type="file" name="file" accept=".csv">
+    <button class="btn btn-success mt-3">Predecir (batch)</button>
+  </div>
+</form>
+
+{% if single_html %}
+  <div class="card mt-4">
+    <div class="card-header">Resultado (single)</div>
+    <div class="card-body table-responsive">{{ single_html|safe }}</div>
+  </div>
+{% endif %}
+
+{% if batch_file %}
+  <div class="card mt-4">
+    <div class="card-header">Resultado (batch)</div>
+    <div class="card-body">
+      <a class="btn btn-outline-primary" href="{{ url_for('download', folder='uploads', name=batch_file) }}">{{ batch_file }}</a>
+      <div class="table-responsive mt-3">{{ batch_preview|safe }}</div>
     </div>
-
-    <div class="mb-3">
-      <label>Modo</label>
-      <select class="form-select" name="mode" id="mode" onchange="toggleMode()">
-        <option value="single">Single (form)</option>
-        <option value="batch">Batch (CSV)</option>
-      </select>
-    </div>
-
-    <div id="singleDiv">
-      <p>Ingresa valores para cada columna (campos generados a partir del dataset entrenado):</p>
-      {% if feature_names %}
-        {% for col in feature_names %}
-          <div class="mb-2">
-            <label>{{ col }}</label>
-            <input class="form-control" name="col__{{ col }}" placeholder="{{ col }}">
-          </div>
-        {% endfor %}
-      {% else %}
-        <p class="text-muted">No hay metadatos del dataset aún — entrena primero para auto-generar el formulario.</p>
-      {% endif %}
-      <button class="btn btn-primary" type="submit">Predecir (single)</button>
-    </div>
-
-    <div id="batchDiv" style="display:none">
-      <p>Sube CSV con las mismas columnas (sin target) que usaste en entrenamiento.</p>
-      <input class="form-control mb-2" type="file" name="file" accept=".csv">
-      <button class="btn btn-primary" type="submit">Predecir (batch)</button>
-    </div>
-  </form>
-
-  <hr>
-  {% if single_result %}
-    <h5>Resultado (single)</h5>
-    <div class="table-wrap text-dark">{{ single_result|safe }}</div>
-  {% endif %}
-
-  {% if batch_file %}
-    <h5>Resultado (batch) - archivo:</h5>
-    <a class="btn btn-outline-light" href="{{ url_for('download_preds', name=batch_file) }}">{{ batch_file }}</a>
-    <div class="table-wrap text-dark mt-2">{{ batch_preview|safe }}</div>
-  {% endif %}
+  </div>
+{% endif %}
 
 <script>
 function toggleMode(){
-  var val = document.getElementById('mode').value;
-  document.getElementById('singleDiv').style.display = val === 'single' ? 'block' : 'none';
-  document.getElementById('batchDiv').style.display = val === 'batch' ? 'block' : 'none';
+  const v = document.getElementById('mode').value;
+  document.getElementById('singleDiv').style.display = (v==='single') ? 'block' : 'none';
+  document.getElementById('batchDiv').style.display  = (v==='batch') ? 'block' : 'none';
 }
 </script>
-
 {% endblock %}

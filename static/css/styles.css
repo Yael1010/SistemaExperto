@@ -1,3 +1,446 @@
-/* añade cosas pequeñas además de Bootstrap */
-.table-wrap { background: white; padding: 10px; border-radius: 8px; overflow:auto; color:#111; }
-.bg-dark .table-wrap { color:#111; }
+/* Mini-Weka Pro - Estilos Personalizados */
+
+/* Variables CSS para consistencia de colores */
+:root {
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --success-color: #28a745;
+  --info-color: #17a2b8;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+  --light-bg: #f8f9fa;
+  --dark-text: #212529;
+  --muted-text: #6c757d;
+  --border-radius: 10px;
+  --box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  --transition: all 0.3s ease;
+}
+
+/* Estilos globales */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+}
+
+/* Navegación */
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.5rem;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.bg-gradient {
+  background: var(--primary-gradient);
+}
+
+.navbar-nav .nav-link {
+  transition: var(--transition);
+  border-radius: 5px;
+  margin: 0 2px;
+}
+
+.navbar-nav .nav-link:hover {
+  background-color: rgba(255,255,255,0.2);
+  transform: translateY(-1px);
+}
+
+/* Cards y contenedores */
+.card {
+  border: none;
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.card-header {
+  border-bottom: none;
+  font-weight: 600;
+  padding: 1rem 1.25rem;
+}
+
+.card-body {
+  padding: 1.5rem 1.25rem;
+}
+
+/* Tablas */
+.table-wrap { 
+  background: white; 
+  padding: 15px; 
+  border-radius: var(--border-radius); 
+  overflow: auto; 
+  color: var(--dark-text); 
+  box-shadow: var(--box-shadow);
+  border: 1px solid #dee2e6;
+}
+
+.table-wrap table {
+  margin-bottom: 0;
+}
+
+.table-wrap th {
+  background-color: var(--light-bg);
+  font-weight: 600;
+  border-top: none;
+}
+
+/* Botones */
+.btn {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  transition: width 0.6s, height 0.6s;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+}
+
+.btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn > * {
+  position: relative;
+  z-index: 1;
+}
+
+.btn-lg {
+  padding: 0.75rem 2rem;
+  font-size: 1.1rem;
+}
+
+.btn-group-sm .btn {
+  border-radius: 4px;
+  margin-right: 2px;
+}
+
+/* Iconos en botones */
+.btn i {
+  margin-right: 0.5rem;
+}
+
+.btn-sm i {
+  margin-right: 0.25rem;
+}
+
+/* Alertas */
+.alert {
+  border-radius: var(--border-radius);
+  border: none;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.alert::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+
+.alert-success::before { background: var(--success-color); }
+.alert-info::before { background: var(--info-color); }
+.alert-warning::before { background: var(--warning-color); }
+.alert-danger::before { background: var(--danger-color); }
+
+/* Formularios */
+.form-control {
+  border-radius: 6px;
+  border: 2px solid #e9ecef;
+  transition: var(--transition);
+  padding: 0.75rem;
+}
+
+.form-control:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.form-select {
+  border-radius: 6px;
+  border: 2px solid #e9ecef;
+  transition: var(--transition);
+}
+
+.form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.form-label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* Badges */
+.badge {
+  font-size: 0.8em;
+  border-radius: 6px;
+  padding: 0.4em 0.8em;
+}
+
+/* List groups */
+.list-group-item {
+  border: none;
+  border-bottom: 1px solid rgba(0,0,0,0.125);
+  transition: var(--transition);
+  border-radius: 0;
+}
+
+.list-group-item:last-child {
+  border-bottom: none;
+}
+
+.list-group-item:hover {
+  background-color: var(--light-bg);
+  transform: translateX(5px);
+  padding-left: 1.5rem;
+}
+
+/* Modales */
+.modal-content {
+  border: none;
+  border-radius: var(--border-radius);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.modal-footer {
+  border-top: 1px solid rgba(0,0,0,0.1);
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+}
+
+/* Acordeón */
+.accordion-button {
+  font-weight: 600;
+  border-radius: 0;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: var(--light-bg);
+  color: var(--dark-text);
+}
+
+.accordion-body {
+  background-color: #fff;
+}
+
+/* Footer */
+footer {
+  margin-top: auto;
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+}
+
+/* Animaciones de carga */
+.loading {
+  position: relative;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Spinner personalizado */
+.spinner-custom {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 0.2em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+/* Efectos hover para elementos interactivos */
+.hover-lift {
+  transition: var(--transition);
+}
+
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+/* Texto con gradiente */
+.text-gradient {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: bold;
+}
+
+/* Contenedor de métricas */
+.metrics-container {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin: 1rem 0;
+}
+
+.metric-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.metric-label {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted-text);
+}
+
+/* Visualizaciones */
+.visualization-container {
+  background: white;
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  box-shadow: var(--box-shadow);
+  text-align: center;
+}
+
+.visualization-container img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  .btn-lg {
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .metric-value {
+    font-size: 2rem;
+  }
+  
+  .table-wrap {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Scrollbar personalizada */
+.table-wrap::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-wrap::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* Estados de validación */
+.was-validated .form-control:valid {
+  border-color: var(--success-color);
+}
+
+.was-validated .form-control:invalid {
+  border-color: var(--danger-color);
+}
+
+/* Tooltips personalizados */
+.tooltip-inner {
+  background-color: rgba(0,0,0,0.9);
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+/* Progreso personalizado */
+.progress {
+  height: 8px;
+  border-radius: 4px;
+  background-color: #e9ecef;
+}
+
+.progress-bar {
+  border-radius: 4px;
+  background: var(--primary-gradient);
+}
+
+/* Sombras personalizadas */
+.shadow-custom {
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.shadow-custom-lg {
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+/* Utilidades adicionales */
+.border-radius-custom {
+  border-radius: var(--border-radius) !important;
+}
+
+.transition-all {
+  transition: var(--transition) !important;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .card {
+    box-shadow: none;
+    border: 1px solid #dee2e6;
+  }
+}
